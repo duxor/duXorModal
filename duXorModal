@@ -1,0 +1,80 @@
+/*#
+ ### Name: duXorModal
+ ### Autor: Dusan Perisci
+ ### Home: dusanperisic.com
+ ###
+ ### Napomena: 	Klasa je pisana kao podrška kontrole modal opcije
+ ###            pri čemu je korištem post metoda za pribavljanje 
+ ###            podataka.
+ ###            Ukoliko je to potrebno na vrlo jednostavan način moguće
+ ###            urediti funkciju za rad u lokalu. Prema osnovnoj zamisli
+ ###            potrebno je izvršiti uređivanje rasporeda podataka na modalu.
+ ### ------------------------------------------------------------------
+ ### Uputstvo:
+ ###            Sve što je potrebno uraditi je dodati: window.onload = function(){ fullScreen.showModal(); }
+ ###            u sastav JavaScript koda. Podaci koji mogu da mijenjaju su promjenjive:
+ ###                targetURL           - URL za prenos post metodom
+ ###                isInBody            - prikazuje da li se modal nalazi u dokumentu
+ ###                animateSpeed        - brzina animacija [fadeIn, fadeOut]
+ ### ------------------------------------------------------------------
+#*/ 
+var duXorModal ={
+    targetURL:'/galerija',
+    isInBody:false,
+    animateSpeed:400,
+    show:function(el){
+        $('body').append('<div id="duXorModal">'+
+                                '<div id="duXorModal-wait" style="margin-top:100px">'+
+                                    '<center><i class="icon-spin6 animate-spin" style="font-size: 350%;color:#000"></i></center>'+
+                                '</div>'+
+                                '<div id="duXorModal-body">'+
+                                    '<button style="position:fixed;top:0px;right:0px;z-index:999" class="btn btn-xs btn-danger" onclick="duXorModal.hide()"><svg height="50" width="50"><line x1="0" y1="0" x2="50" y2="50" style="stroke:#fff;stroke-width:10" />  <line x1="0" y1="50" x2="50" y2="0" style="stroke:#fff;stroke-width:10" />Izvinjavamo se, Vaš browser ne podržava SVG.</svg></button>'+
+                                    '<div class="col-sm-3">'+
+                                        '<h2 style="padding-top:50px">'+
+                                            $(el).children('p').html()+
+                                        '</h2>'+
+                                        '<div class="text"></div>'+
+                                    '</div>'+
+                                '</div>'+
+                             '</div>');
+        $('#duXorModal-body').hide();
+        $('#duXorModal').slideDown();
+        this.isInBody=true;
+        $.post(duXorModal.targetURL,
+               {
+                    _token:$('#_token').val(),
+                    slug:$(el).data('slug')
+               },function(data){
+                    var podaci = JSON.parse(data), 
+///#########
+//########## Uređenje rasporeda rezultujućih podataka 
+//########## START::
+//##########        
+                        indikatori = '', 
+                        fotoHtml = '';
+                    for(var i=0; i<podaci.foto.length; i++){
+                        indikatori += '<li data-target="#galerijaSlajderFoto" data-slide-to="'+i+'"'+(i==0?'class="active"':'')+'></li>';
+                        fotoHtml += '<div class="item '+(i==0?'active':'')+'"><img style="width:100%" src="/'+podaci.foto[i]+'" alt="Pomeranac fotografija '+i+'"></div>';
+                    }
+                    $('#duXorModal').find('.text').html(podaci.text);
+                    $('#duXorModal').children('#duXorModal-body').append('<div class="col-sm-9"><div id="galerijaSlajderFoto" class="carousel slide" data-ride="carousel"><ol class="carousel-indicators">'+indikatori+'</ol><div class="carousel-inner" role="listbox">'+fotoHtml+'</div><a class="left carousel-control" href="#galerijaSlajderFoto" role="button" data-slide="prev"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span><span class="sr-only">Previous</span></a><a class="right carousel-control" href="#galerijaSlajderFoto" role="button" data-slide="next"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span><span class="sr-only">Next</span></a></div></div>');
+                    $('#galerijaSlajderFoto').carousel();
+                    
+///#########
+//########## ::END
+//########## Uređenje rasporeda rezultujućih podataka 
+//##########
+                    $('#duXorModal-wait').hide();console.log(111);
+                    $('#duXorModal-body').fadeIn(duXorModal.animateSpeed);
+        });
+    },
+    hide:function(){
+        $('#duXorModal').slideUp(this.animateSpeed,function(){
+            $('#duXorModal').remove();
+        });
+        this.isInBody=false
+    },
+    disableScroll:function(){
+        event.preventDefault();
+    }
+}
